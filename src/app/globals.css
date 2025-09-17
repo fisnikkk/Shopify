@@ -19,8 +19,129 @@
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a; /* your dark bg */
+  --foreground: #ededed;
+  --bg:#0B0F1A;
+  --ink:#ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* remove this old rule:
+body { font-family: Arial, Helvetica, sans-serif; }
+*/
+
+/* animations you already had */
+@keyframes blob { /* ... unchanged ... */ }
+@keyframes float { /* ... unchanged ... */ }
+
+/* Lenis helpers */
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto; }
+.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+
+/* Pinned stage depth */
+.stage { perspective: 1000px; }
+.tile, .tile * { will-change: transform; }
+
+/* Lenis + ScrollTrigger helpers */
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto; }
+.lenis-stopped { overflow: hidden; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+
+/* depth + perf */
+.pg { perspective: 1000px; }
+.pg__card, .pg__card * { will-change: transform; }
+
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* --- HERO title rhythm (prevents mid-word breaks) --- */
+.hero-typography h1 {
+  font-size: clamp(34px, 6vw, 90px);
+  /* slightly smaller max than before */
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  /* a touch softer to help line endings */
+  max-width: 16ch;
+  /* ~2–3 lines; tweak 15–17ch to taste */
+  text-wrap: balance;
+  overflow-wrap: normal;
+  /* don't introduce forced breaks */
+  word-break: keep-all;
+  /* 🚫 mid-word splitting */
+  hyphens: none;
+  /* 🚫 automatic hyphenation */
+}
+
+.hero-typography h2 {
+  font-size: clamp(18px, 2.1vw, 24px);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 68ch;
+}
+
+@media (max-width: 640px) {
+  .hero-typography h1 {
+    max-width: 13ch;
+  }
+}
+
+
+/* globals.css */
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* Balanced wrapping + clamp to 2 lines for hero titles */
+.hero-title {
+  text-wrap: balance;
+  /* nicer multi-line breaks */
+  overflow-wrap: normal;
+  /* don't split inside words */
+  word-break: keep-all;
+  /* keep words intact */
+  hyphens: none;
+  /* never auto-hyphenate */
+  line-height: .95;
+}
+
+.hero-title {
+  text-wrap: balance;
+  /* nicer multi-line breaks */
+  overflow-wrap: normal;
+  /* don't split inside words */
+  word-break: keep-all;
+  /* keep words intact */
+  hyphens: none;
+  /* never auto-hyphenate */
+  line-height: .95;
 }
