@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants, type Transition } from "framer-motion";
 import { useMemo, useState, useEffect } from "react";
 
 type Props = {
@@ -12,18 +12,27 @@ type Props = {
   imageUrl?: string;
 };
 
+// Typed easing tuple (readonly 4-tuple so Framer types accept it)
+const EASE_BEZIER = [0.16, 1, 0.3, 1] as const;
+
+// Image transition typed explicitly to satisfy Variants->Transition types
+const IMAGE_TRANSITION: Transition = {
+  duration: 1.2,
+  ease: EASE_BEZIER, // typed easing tuple
+};
+
 // --- Variants ---
-const letterVariant = {
+const letterVariant: Variants = {
   hidden: { y: -28, opacity: 0, filter: "blur(6px)" },
   show: { y: 0, opacity: 1, filter: "blur(0px)" },
 };
 
-const imageVariants = {
+const imageVariants: Variants = {
   hidden: { opacity: 0, scale: 1.05 },
   visible: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 1.2, ease: "easeOut" },
+    transition: IMAGE_TRANSITION,
   },
 };
 
@@ -43,32 +52,24 @@ export default function LetterDropTitle({
 
   const totalLetters = useMemo(() => words.join("").length, [words]);
 
-  // This useEffect provides reliable timing for the image fade-in
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setTimeout>;
     if (play) {
-      // Calculate when the last letter's animation will BEGIN
       const lastLetterStartTime = baseDelay + totalLetters * staggerDelay;
-
-      // Set the image fade-in to start slightly AFTER the last letter begins animating
-      // This buffer allows the spring animation to settle.
-      const imageFadeInDelay = (lastLetterStartTime + 0.3) * 1000; // Convert to ms
-
+      const imageFadeInDelay = (lastLetterStartTime + 0.3) * 1000; // ms
       timer = setTimeout(() => {
         setShowImage(true);
         onComplete?.();
       }, imageFadeInDelay);
     }
-    // Cleanup function to clear the timer if the component unmounts
     return () => clearTimeout(timer);
   }, [play, totalLetters, onComplete]);
-
 
   let letterCount = 0;
 
   return (
     <div className="text-center relative overflow-hidden">
-      {/* --- Image (Rendered in the background) --- */}
+      {/* --- Image (background) --- */}
       {imageUrl && (
         <motion.img
           src={imageUrl}
@@ -80,7 +81,7 @@ export default function LetterDropTitle({
         />
       )}
 
-      {/* --- Text Content (Rendered in the foreground) --- */}
+      {/* --- Text Content (foreground) --- */}
       <div className="relative z-10">
         {eyebrow && (
           <div
@@ -98,7 +99,6 @@ export default function LetterDropTitle({
           className="uppercase text-white font-bold tracking-tight text-[clamp(40px,7.2vw,88px)] leading-[0.95] max-w-[22ch] mx-auto"
           initial="hidden"
           animate={play ? "show" : "hidden"}
-          // onAnimationComplete has been removed for reliability
           aria-label={title}
           role="heading"
         >

@@ -1,72 +1,89 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
-import type { CaseStudy } from "@/data/work";
+import Image from "next/image";
+import { useEffect, useRef } from "react";
 
-export default function CaseStudyCard({
-  cs,
-  index = 0,
-}: {
-  cs: CaseStudy;
-  index?: number;
-}) {
-  // simple pattern so some cards are taller → nice staggered masonry
-  const ratio =
-    index % 6 === 1 ? "aspect-[2/3]" : index % 6 === 4 ? "aspect-[3/4]" : "aspect-[4/5]";
+type CoverObj = { img?: string; poster?: string; video?: string };
 
+type MiniCase = {
+  slug: string;
+  title?: string;
+  subtitle?: string;
+  // cover can be a string (image path) or an object with media fields
+  cover: string | CoverObj;
+};
+
+type Props = {
+  cs: MiniCase;
+  /** Tailwind aspect class (e.g. "aspect-[16/9]" or "aspect-square") */
+  ratio?: string;
+};
+
+const isCoverObj = (c: unknown): c is CoverObj =>
+  typeof c === "object" && c !== null;
+
+export default function CaseStudyCard({ cs, ratio = "aspect-[16/9]" }: Props) {
   const vref = useRef<HTMLVideoElement | null>(null);
 
+  // Normalize cover fields
+  const coverPoster = isCoverObj(cs.cover)
+    ? cs.cover.poster ?? cs.cover.img
+    : (cs.cover as string | undefined);
+
+  const coverImg = isCoverObj(cs.cover)
+    ? cs.cover.img ?? cs.cover.poster
+    : (cs.cover as string | undefined);
+
+  const coverVideo = isCoverObj(cs.cover) ? cs.cover.video : undefined;
+
+  // Best-effort autoplay on mount (will be ignored if user gesture is required)
+  useEffect(() => {
+    if (vref.current) {
+      vref.current.play().catch(() => { });
+    }
+  }, []);
+
   return (
-    <article className="mb-6 break-inside-avoid rounded-[24px] ring-1 ring-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.35)] overflow-hidden bg-zinc-900/60 backdrop-blur">
-      <Link
-        href={`/work/${cs.slug}`}
-        className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-[24px]"
-      >
-        {/* Media */}
-        <div className={`relative w-full ${ratio}`}>
-          {cs.cover.video ? (
-            <video
-              ref={vref}
-              className="absolute inset-0 h-full w-full object-cover"
-              muted
-              playsInline
-              loop
-              preload="metadata"
-              poster={cs.cover.poster}
-              onMouseEnter={() => vref.current?.play().catch(() => {})}
-              onMouseLeave={() => vref.current?.pause()}
-            >
-              <source src={cs.cover.video} />
-            </video>
-          ) : cs.cover.img ? (
-            <Image
-              src={cs.cover.img}
-              alt=""
-              fill
-              priority={index < 3}
-              sizes="(min-width:1024px) 32vw, (min-width:640px) 48vw, 100vw"
-              className="object-cover"
-            />
-          ) : null}
+    <Link
+      href={`/work/${cs.slug}`}
+      className="block rounded-2xl overflow-hidden bg-white/5 ring-1 ring-white/10 hover:ring-white/20 transition"
+    >
+      {/* Media */}
+      <div className={`relative w-full ${ratio}`}>
+        {coverVideo ? (
+          <video
+            ref={vref}
+            className="absolute inset-0 h-full w-full object-cover"
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster={coverPoster}
+            onMouseEnter={() => vref.current?.play().catch(() => { })}
+            onMouseLeave={() => vref.current?.pause()}
+          >
+            {/* If you don’t have a .webm, you can remove the source below */}
+            <source src={coverVideo.replace(".mp4", ".webm")} type="video/webm" />
+            <source src={coverVideo} type="video/mp4" />
+          </video>
+        ) : coverImg ? (
+          <Image
+            src={coverImg}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(min-width:1024px) 33vw, (min-width:768px) 50vw, 100vw"
+            priority={false}
+          />
+        ) : null}
+      </div>
 
-          {/* subtle gradient to lift copy */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-        </div>
-
-        {/* Caption */}
-        <div className="relative -mt-14 px-5 pb-5">
-          <div className="rounded-2xl bg-black/30 px-4 py-3 ring-1 ring-white/10 backdrop-blur-sm">
-            <p className="text-white/80 text-sm leading-tight line-clamp-1">
-              {cs.tagline}
-            </p>
-            <h3 className="mt-1 text-white font-semibold text-xl leading-snug line-clamp-2">
-              {cs.title}
-            </h3>
-          </div>
-        </div>
-      </Link>
-    </article>
+      {/* Copy */}
+      <div className="p-5">
+        {cs.subtitle && <div className="text-sm text-white/60">{cs.subtitle}</div>}
+        {cs.title && <div className="text-lg font-semibold">{cs.title}</div>}
+      </div>
+    </Link>
   );
 }
