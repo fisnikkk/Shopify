@@ -10,8 +10,8 @@ export default function ServicesPage() {
       </header>
 
       <section className="grid md:grid-cols-2 gap-6 mt-10">
-        {services.map((s, i) => (
-          <ServiceCard key={s.slug} s={s as any} i={i} />
+        {services.map((s: Service, i: number) => (
+          <ServiceCard key={s.slug} s={s} i={i} />
         ))}
       </section>
     </main>

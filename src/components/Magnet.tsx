@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default function Magnet({ href, children, className = "" }: Props) {
-  const ref = useRef<HTMLAnchorElement>(null);
+  const ref = useRef<HTMLAnchorElement | null>(null);
 
   return (
     <Link

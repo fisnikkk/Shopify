@@ -18,8 +18,8 @@ export function generateStaticParams() {
 export const metadata = { title: "Case Study" };
 
 export default function CasePage({ params }: { params: { slug: string } }) {
-  const idx = caseStudies.findIndex((c: any) => c.slug === params.slug);
-  const cs: any = caseStudies[idx];
+  const idx = caseStudies.findIndex((c) => c.slug === params.slug);
+  const cs: CaseStudy | undefined = caseStudies[idx];
   if (!cs) return notFound();
 
   const metaItems = [
@@ -40,7 +40,7 @@ export default function CasePage({ params }: { params: { slug: string } }) {
   ].filter(Boolean);
 
   const shipped: string[] = cs.shipped ?? cs.deliverables ?? [];
-  const results: KPI[] = (cs.results ?? cs.metrics ?? []).map((m: any) => ({
+  const results: KPI[] = (cs.results ?? cs.metrics ?? []).map((m) => ({
     label: m.label ?? m.title,
     sub: m.sub ?? m.caption,
     dir: m.dir ?? m.direction,
@@ -138,9 +138,11 @@ export default function CasePage({ params }: { params: { slug: string } }) {
       ) : null}
 
       {Array.isArray(cs.centeredSections) &&
-        cs.centeredSections.map((sec: any, i: number) => (
-          <CenteredCopyBlock key={i} title={sec.title} paragraphs={sec.paragraphs} />
-        ))}
+        cs.centeredSections.map(
+          (sec: { title: string; paragraphs: string[] }, i: number) => (
+            <CenteredCopyBlock key={i} title={sec.title} paragraphs={sec.paragraphs} />
+          )
+        )}
 
       <GetInTouchBand />
       <CaseNav

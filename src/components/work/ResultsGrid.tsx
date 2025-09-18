@@ -1,10 +1,11 @@
 "use client";
 import { ReactNode } from "react";
+type IconProps = { className?: string };
 
-const Up = (p: any) => (
+const Up = (p: IconProps) => (
     <svg viewBox="0 0 24 24" aria-hidden className={p.className}><path d="M12 4l6 6h-4v10h-4V10H6l6-6z" /></svg>
 );
-const Down = (p: any) => (
+const Down = (p: IconProps) => (
     <svg viewBox="0 0 24 24" aria-hidden className={p.className}><path d="M12 20l-6-6h4V4h4v10h4l-6 6z" /></svg>
 );
 

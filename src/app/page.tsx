@@ -3,6 +3,7 @@ import PinnedGallery from "@/components/PinnedGallery";
 import HomeServicesPreview from "@/components/HomeServicesPreview";
 import { Stat, CaseCard } from "@/components/Card";
 import { logos, cases } from "@/lib/data";
+import Link from "next/link";
 
 export default function Page() {
   return (
@@ -53,15 +54,15 @@ export default function Page() {
               <p className="text-xs tracking-widest text-white/50 uppercase">Case Studies</p>
               <h2 className="text-3xl md:text-4xl font-semibold">A few recent builds & automations</h2>
             </div>
-            <a href="/contact" className="text-sm text-white/70 hover:text-white">
+            <Link href="/contact" className="text-sm text-white/70 hover:text-white">
               Work with me →
-            </a>
+            </Link>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {cases.map((c) => (
-              <a key={c.slug} href={`/work/${c.slug}`}>
+              <Link key={c.slug} href={`/work/${c.slug}`} className="block">
                 <CaseCard title={c.title} subtitle={c.subtitle} bullets={c.bullets} />
-              </a>
+              </Link>
             ))}
           </div>
         </section>
@@ -74,12 +75,12 @@ export default function Page() {
               Monthly retainers for fixes & iterations, A/B tests, and ongoing n8n maintenance.
             </p>
             <div className="mt-6 flex gap-3 flex-wrap">
-              <a className="rounded-xl px-4 py-2 bg-white text-[#0B0F1A]" href="/services">
+              <Link className="rounded-xl px-4 py-2 bg-white text-[#0B0F1A]" href="/services">
                 See memberships
-              </a>
-              <a className="rounded-xl px-4 py-2 ring-1 ring-white/20 hover:ring-white/40" href="/contact">
+              </Link>
+              <Link className="rounded-xl px-4 py-2 ring-1 ring-white/20 hover:ring-white/40" href="/contact">
                 Get in touch
-              </a>
+              </Link>
             </div>
           </div>
         </section>

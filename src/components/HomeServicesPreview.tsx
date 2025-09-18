@@ -1,6 +1,7 @@
 // components/HomeServicesPreview.tsx
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 
 const groups = {
   "Design & Development": [
@@ -55,8 +56,8 @@ export default function HomeServicesPreview() {
           ))}
         </ul>
         <div className="mt-6 flex gap-3">
-          <a href="/services" className="rounded-2xl px-4 py-2 bg-white text-[#0B0F1A]">Explore Services</a>
-          <a href="/contact" className="rounded-2xl px-4 py-2 ring-1 ring-white/20 hover:ring-white/40">Get in touch</a>
+          <Link href="/services" className="rounded-2xl px-4 py-2 bg-white text-[#0B0F1A]">Explore Services</Link>
+          <Link href="/contact" className="rounded-2xl px-4 py-2 ring-1 ring-white/20 hover:ring-white/40">Get in touch</Link>
         </div>
       </div>
     </section>
