@@ -1,6 +1,6 @@
 import ServiceCard from "@/components/services/ServiceCard";
 import { services } from "@/data/services";
-
+import type { Service } from "@/data/services";
 export default function ServicesPage() {
   return (
     <main className="px-6 md:px-10 max-w-6xl mx-auto pb-24">
