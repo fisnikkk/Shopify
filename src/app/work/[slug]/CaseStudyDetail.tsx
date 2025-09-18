@@ -4,27 +4,32 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import type { CaseStudy as BaseCaseStudy } from "@/data/work";
 
-/** Allow flexible data fields so TS stops complaining */
+/**
+ * A flexible, local type for this component only.
+ * It avoids intersecting with the stricter KPI-based types from data/work.
+ */
 type CoverObj = { poster?: string; img?: string; video?: string };
-type FlexibleCaseStudy = BaseCaseStudy & {
+type CaseStudy = {
+  slug: string;
+  title: string;
+  subtitle?: string;
+  eyebrow?: string;
+
   // Overview
   summary?: string;
   brief?: string | string[];
 
-  // Lists
+  // Lists / content
   highlights?: string[];
   shipped?: string[];
   deliverables?: string[];
-
-  // Sections
   sections?: { heading: string; body: string }[] | string[];
 
-  // Outcomes / metrics
+  // Outcomes / metrics (accept anything, we normalize below)
   outcomes?: { label: string; value: string }[];
-  results?: { label?: string; title?: string; value?: string }[];
-  metrics?: { label?: string; title?: string; value?: string }[];
+  results?: Array<Record<string, unknown>>;
+  metrics?: Array<Record<string, unknown>>;
 
   // Tech stack
   stack?: string[];
@@ -42,7 +47,7 @@ type FlexibleCaseStudy = BaseCaseStudy & {
 const isCoverObj = (c: unknown): c is CoverObj =>
   typeof c === "object" && c !== null;
 
-export default function CaseStudyDetail({ cs }: { cs: FlexibleCaseStudy }) {
+export default function CaseStudyDetail({ cs }: { cs: CaseStudy }) {
   const [showMedia, setShowMedia] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -52,36 +57,42 @@ export default function CaseStudyDetail({ cs }: { cs: FlexibleCaseStudy }) {
     (Array.isArray(cs.brief) ? cs.brief.join("\n\n") : cs.brief) ??
     "";
 
-  const highlights =
-    cs.highlights ?? cs.shipped ?? cs.deliverables ?? [];
+  const highlights = cs.highlights ?? cs.shipped ?? cs.deliverables ?? [];
 
-  const sectionsArr =
-    (Array.isArray(cs.sections) ? cs.sections : []) as {
-      heading: string;
-      body: string;
-    }[];
+  const sectionsArr: { heading: string; body: string }[] = Array.isArray(cs.sections)
+    ? (cs.sections as any[]).map((s) =>
+      typeof s === "string" ? { heading: "", body: s } : s
+    )
+    : [];
 
   const outcomes =
     cs.outcomes ??
-    (cs.results ?? cs.metrics ?? []).map((m) => ({
-      label: (m.label ?? m.title ?? "") as string,
-      value: (m.value ?? "") as string,
-    }));
+    ((cs.results ?? cs.metrics ?? []) as Array<Record<string, unknown>>).map(
+      (m) => ({
+        // Try common keys, fall back to empty strings
+        label:
+          (m["label"] as string) ??
+          (m["title"] as string) ??
+          (m["metric"] as string) ??
+          "",
+        value:
+          (m["value"] as string) ??
+          (m["sub"] as string) ??
+          (m["result"] as string) ??
+          "",
+      })
+    );
 
-  const stack =
-    cs.stack ?? cs.tech ?? cs.technology ?? [];
-
+  const stack = cs.stack ?? cs.tech ?? cs.technology ?? [];
   const gallery = cs.gallery ?? cs.images ?? [];
 
-  // Cover media
+  // Cover media – support either string or object
   const coverPoster = isCoverObj(cs.cover)
     ? cs.cover.poster ?? cs.cover.img
     : (cs.cover as string | undefined);
-
   const coverImg = isCoverObj(cs.cover)
     ? cs.cover.img ?? cs.cover.poster
     : (cs.cover as string | undefined);
-
   const coverVideo = isCoverObj(cs.cover) ? cs.cover.video : undefined;
 
   useEffect(() => {
@@ -115,7 +126,7 @@ export default function CaseStudyDetail({ cs }: { cs: FlexibleCaseStudy }) {
           transition={{ type: "spring", stiffness: 220, damping: 28 }}
           style={{ willChange: "transform" }}
         >
-          {/* During the zoom: lightweight */}
+          {/* During the zoom: lightweight placeholder image */}
           {!showMedia && (coverPoster || coverImg) && (
             <div className="relative aspect-[16/9]">
               <Image
@@ -140,9 +151,9 @@ export default function CaseStudyDetail({ cs }: { cs: FlexibleCaseStudy }) {
                 preload="metadata"
                 poster={coverPoster}
               >
-                {/* Remove the .webm line below if you don't have a webm */}
+                {/* If you don't ship a .webm, remove the next <source> line */}
                 <source
-                  src={coverVideo.replace(".mp4", ".webm")}
+                  src={coverVideo.endsWith(".mp4") ? coverVideo.replace(".mp4", ".webm") : `${coverVideo}.webm`}
                   type="video/webm"
                 />
                 <source src={coverVideo} type="video/mp4" />
@@ -182,13 +193,14 @@ export default function CaseStudyDetail({ cs }: { cs: FlexibleCaseStudy }) {
             </>
           )}
 
-          {!!sectionsArr.length &&
-            sectionsArr.map((s) => (
-              <div key={s.heading} className="mt-8">
+          {sectionsArr.map((s, i) => (
+            <div key={(s.heading || "") + i} className="mt-8">
+              {s.heading ? (
                 <h3 className="text-xl font-semibold mb-2">{s.heading}</h3>
-                <p className="text-white/80 leading-7">{s.body}</p>
-              </div>
-            ))}
+              ) : null}
+              <p className="text-white/80 leading-7">{s.body}</p>
+            </div>
+          ))}
         </div>
 
         <aside>
