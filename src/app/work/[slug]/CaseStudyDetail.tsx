@@ -5,47 +5,53 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
-/**
- * A flexible, local type for this component only.
- * It avoids intersecting with the stricter KPI-based types from data/work.
- */
+/** Local, flexible type just for this component */
 type CoverObj = { poster?: string; img?: string; video?: string };
+type Section = { heading: string; body: string };
 type CaseStudy = {
   slug: string;
   title: string;
   subtitle?: string;
   eyebrow?: string;
 
-  // Overview
   summary?: string;
   brief?: string | string[];
 
-  // Lists / content
   highlights?: string[];
   shipped?: string[];
   deliverables?: string[];
-  sections?: { heading: string; body: string }[] | string[];
+  sections?: Section[] | string[];
 
-  // Outcomes / metrics (accept anything, we normalize below)
   outcomes?: { label: string; value: string }[];
   results?: Array<Record<string, unknown>>;
   metrics?: Array<Record<string, unknown>>;
 
-  // Tech stack
   stack?: string[];
   tech?: string[];
   technology?: string[];
 
-  // Gallery
   gallery?: string[];
   images?: string[];
 
-  // Media
   cover: string | CoverObj;
 };
 
 const isCoverObj = (c: unknown): c is CoverObj =>
   typeof c === "object" && c !== null;
+
+function normalizeSections(input: CaseStudy["sections"]): Section[] {
+  if (!Array.isArray(input)) return [];
+  const out: Section[] = [];
+  for (const s of input) {
+    if (typeof s === "string") {
+      out.push({ heading: "", body: s });
+    } else if (s && typeof s === "object") {
+      const obj = s as Partial<Section>;
+      out.push({ heading: obj.heading ?? "", body: obj.body ?? "" });
+    }
+  }
+  return out;
+}
 
 export default function CaseStudyDetail({ cs }: { cs: CaseStudy }) {
   const [showMedia, setShowMedia] = useState(false);
@@ -59,17 +65,12 @@ export default function CaseStudyDetail({ cs }: { cs: CaseStudy }) {
 
   const highlights = cs.highlights ?? cs.shipped ?? cs.deliverables ?? [];
 
-  const sectionsArr: { heading: string; body: string }[] = Array.isArray(cs.sections)
-    ? (cs.sections as any[]).map((s) =>
-      typeof s === "string" ? { heading: "", body: s } : s
-    )
-    : [];
+  const sectionsArr = normalizeSections(cs.sections);
 
   const outcomes =
     cs.outcomes ??
     ((cs.results ?? cs.metrics ?? []) as Array<Record<string, unknown>>).map(
       (m) => ({
-        // Try common keys, fall back to empty strings
         label:
           (m["label"] as string) ??
           (m["title"] as string) ??
@@ -153,7 +154,11 @@ export default function CaseStudyDetail({ cs }: { cs: CaseStudy }) {
               >
                 {/* If you don't ship a .webm, remove the next <source> line */}
                 <source
-                  src={coverVideo.endsWith(".mp4") ? coverVideo.replace(".mp4", ".webm") : `${coverVideo}.webm`}
+                  src={
+                    coverVideo.endsWith(".mp4")
+                      ? coverVideo.replace(".mp4", ".webm")
+                      : `${coverVideo}.webm`
+                  }
                   type="video/webm"
                 />
                 <source src={coverVideo} type="video/mp4" />
