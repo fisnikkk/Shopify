@@ -6,20 +6,37 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import type { CaseStudy } from "@/data/work";
 
+type CoverObj = { poster?: string; img?: string; video?: string };
+const isCoverObj = (c: unknown): c is CoverObj =>
+  typeof c === "object" && c !== null;
+
 export default function CaseStudyDetail({ cs }: { cs: CaseStudy }) {
   const [showMedia, setShowMedia] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  // Normalize cover fields so we can use them safely
+  const coverPoster = isCoverObj(cs.cover)
+    ? cs.cover.poster ?? cs.cover.img
+    : (cs.cover as string | undefined);
+
+  const coverImg = isCoverObj(cs.cover)
+    ? cs.cover.img ?? cs.cover.poster
+    : (cs.cover as string | undefined);
+
+  const coverVideo = isCoverObj(cs.cover) ? cs.cover.video : undefined;
+
   useEffect(() => {
     if (showMedia && videoRef.current) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current.play().catch(() => { });
     }
   }, [showMedia]);
 
   return (
     <main className="px-6 md:px-10 max-w-5xl mx-auto pb-24">
       <div className="mt-10 flex items-center gap-4 text-sm text-white/60">
-        <Link href="/work" className="hover:underline">← All work</Link>
+        <Link href="/work" className="hover:underline">
+          ← All work
+        </Link>
       </div>
 
       <motion.h1 layoutId={`title-${cs.slug}`} className="text-4xl md:text-5xl font-bold mt-6">
@@ -37,19 +54,22 @@ export default function CaseStudyDetail({ cs }: { cs: CaseStudy }) {
           style={{ willChange: "transform" }}
         >
           {/* During the zoom: keep it cheap */}
-          {!showMedia && (
-            cs.cover.poster ? (
-              <img src={cs.cover.poster} alt="" className="w-full h-auto" />
-            ) : cs.cover.img ? (
-              <div className="relative aspect-[16/9]">
-                <Image src={cs.cover.img} alt="" fill className="object-cover" priority />
-              </div>
-            ) : null
+          {!showMedia && (coverPoster || coverImg) && (
+            <div className="relative aspect-[16/9]">
+              {/* Using next/image here is fine (or swap for <img src={...} />) */}
+              <Image
+                src={coverImg ?? coverPoster!}
+                alt=""
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
           )}
 
           {/* After the zoom: mount the heavy media */}
           {showMedia && (
-            cs.cover.video ? (
+            coverVideo ? (
               <video
                 ref={videoRef}
                 className="w-full h-auto"
@@ -57,14 +77,21 @@ export default function CaseStudyDetail({ cs }: { cs: CaseStudy }) {
                 loop
                 playsInline
                 preload="metadata"
-                poster={cs.cover.poster}
+                poster={coverPoster}
               >
-                <source src={cs.cover.video.replace(".mp4", ".webm")} type="video/webm" />
-                <source src={cs.cover.video} type="video/mp4" />
+                {/* if you don’t have .webm variants yet, you can remove this source */}
+                <source src={coverVideo.replace(".mp4", ".webm")} type="video/webm" />
+                <source src={coverVideo} type="video/mp4" />
               </video>
-            ) : cs.cover.img ? (
+            ) : (coverImg || coverPoster) ? (
               <div className="relative aspect-[16/9]">
-                <Image src={cs.cover.img} alt="" fill className="object-cover" priority />
+                <Image
+                  src={coverImg ?? coverPoster!}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  priority
+                />
               </div>
             ) : null
           )}
