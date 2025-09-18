@@ -25,7 +25,9 @@ export default function CaseStudyDetail({ cs }: { cs: CaseStudy }) {
       <motion.h1 layoutId={`title-${cs.slug}`} className="text-4xl md:text-5xl font-bold mt-6">
         {cs.title}
       </motion.h1>
-      <p className="text-white/70 mt-3">{cs.tagline}</p>
+      {(cs.subtitle || cs.eyebrow) && (
+        <p className="text-white/70 mt-3">{cs.subtitle ?? cs.eyebrow}</p>
+      )}
 
       <div className="rounded-2xl overflow-hidden border border-white/10 mt-8">
         <motion.div
