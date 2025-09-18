@@ -1,48 +1,40 @@
-// src/app/providers.tsx
 "use client";
 
-import { useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import Lenis from "@studio-freight/lenis";
+import Lenis from "lenis";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const path = usePathname();
+  const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-
     const lenis = new Lenis({
-      lerp: 0.08,           // inertia
+      // keep it simple; these keys exist in the new package
+      lerp: 0.08,
       smoothWheel: true,
-      wheelMultiplier: 1.0,
+      wheelMultiplier: 1,
     });
+    lenisRef.current = lenis;
 
-    let raf = 0;
-    const loop = (t: number) => {
-      lenis.raf(t);
-      raf = requestAnimationFrame(loop);
+    let rafId = 0;
+    const raf = (time: number) => {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
     };
-    raf = requestAnimationFrame(loop);
+    rafId = requestAnimationFrame(raf);
 
     return () => {
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(rafId);
       lenis.destroy();
+      lenisRef.current = null;
     };
   }, []);
 
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.main
-        key={path}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-      >
-        {children}
-      </motion.main>
-    </AnimatePresence>
-  );
+  // scroll to top on route change
+  useEffect(() => {
+    lenisRef.current?.scrollTo(0, { immediate: true });
+  }, [path]);
+
+  return <>{children}</>;
 }
