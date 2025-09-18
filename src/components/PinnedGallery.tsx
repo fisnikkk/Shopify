@@ -8,6 +8,7 @@ import {
   AnimatePresence,
   LayoutGroup,
 } from "framer-motion";
+import type { MotionStyle } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -21,13 +22,13 @@ const STAGGER = 0.04;                  // grid tile reveal spacing
 
 // “ring → grid” timing
 const RING_IN_START = 0.10;            // when ring starts showing behind the hero
-const GRID_FADE_IN  = 0.28;            // when the grid starts to fade in
+const GRID_FADE_IN = 0.28;            // when the grid starts to fade in
 
 // 12 square-friendly images (public/)
 const GRID_IMAGES = [
-  "/case-1.jpg","/case-5.jpg","/case-8.jpg","/case-9.jpg",
-  "/case-11.jpg","/case-12.jpg","/case-3.jpg","/case-4.jpg",
-  "/case-6.jpg","/case-7.jpg","/case-10.jpg","/case-2.jpg",
+  "/case-1.jpg", "/case-5.jpg", "/case-8.jpg", "/case-9.jpg",
+  "/case-11.jpg", "/case-12.jpg", "/case-3.jpg", "/case-4.jpg",
+  "/case-6.jpg", "/case-7.jpg", "/case-10.jpg", "/case-2.jpg",
 ];
 
 /** ===== helpers (no hooks in loops) ===== */
@@ -69,7 +70,7 @@ export default function PinnedGallery() {
   );
 
   // IMPORTANT: end radius now matches tiles exactly (rounded-2xl ≈ 16px)
-  const heroRadius  = useTransform(scrollYProgress, [0, HERO_TO_GRID_AT, 1], [18, 16, 16]);
+  const heroRadius = useTransform(scrollYProgress, [0, HERO_TO_GRID_AT, 1], [18, 16, 16]);
   const heroOpacity = useTransform(scrollYProgress, [0.92, 1], [1, 0.94]);
 
   /** ---------- Grid & Ring opacities ---------- */
@@ -79,7 +80,7 @@ export default function PinnedGallery() {
   const gridOpacity = map(p, GRID_FADE_IN - 0.04, GRID_FADE_IN + 0.06);
 
   /** ---------- Tile styles (no hooks in loops) ---------- */
-  const tileStyle = (i: number) => {
+  const tileStyle = (i: number): React.CSSProperties => {
     const start = 0.18 + i * STAGGER;
     const end = start + 0.22;
     const t = map(p, start, end);
@@ -87,7 +88,7 @@ export default function PinnedGallery() {
       opacity: t,
       transform: `translateY(${24 * (1 - t)}px) scale(${0.86 + 0.14 * t})`,
       willChange: "transform, opacity",
-    } as React.CSSProperties;
+    };
   };
 
   /** ---------- Tiles ONLY (no placeholders here) ---------- */
@@ -115,8 +116,8 @@ export default function PinnedGallery() {
   /** ---------- Ring layer nodes (absolute, circular layout) ---------- */
   const ringChildren = useMemo(() => {
     // ring radius grows a touch with scroll so it feels “taking shape”
-    const rT   = clamp(map(p, RING_IN_START, GRID_FADE_IN), 0, 1);
-    const rad  = Math.min(480, typeof window !== "undefined" ? window.innerWidth * 0.28 : 480) * (0.86 + 0.14*rT);
+    const rT = clamp(map(p, RING_IN_START, GRID_FADE_IN), 0, 1);
+    const rad = Math.min(480, typeof window !== "undefined" ? window.innerWidth * 0.28 : 480) * (0.86 + 0.14 * rT);
     const base = -Math.PI / 2; // start at top
 
     return GRID_IMAGES.map((src, i) => {
@@ -125,7 +126,7 @@ export default function PinnedGallery() {
       const y = Math.sin(angle) * rad;
 
       // fade/scale each tile in with slight stagger
-      const t = clamp(map(p, RING_IN_START + i*0.012, RING_IN_START + 0.14 + i*0.012), 0, 1);
+      const t = clamp(map(p, RING_IN_START + i * 0.012, RING_IN_START + 0.14 + i * 0.012), 0, 1);
       const scale = 0.86 + 0.14 * t;
 
       return (
@@ -145,6 +146,14 @@ export default function PinnedGallery() {
       );
     });
   }, [p]);
+
+  /** ---------- Hero style (typed, no `as any`) ---------- */
+  const heroStyle: MotionStyle = {
+    width: heroW,
+    height: heroH,
+    opacity: heroOpacity,
+    borderRadius: heroRadius,
+  };
 
   return (
     <section ref={ref} className="relative w-full">
@@ -171,33 +180,18 @@ export default function PinnedGallery() {
         <div className="sticky top-[84px]">
           <div className="relative mx-auto w-full max-w-[1500px] px-4 md:px-8">
             <LayoutGroup id="mosaic-center-dock">
-
               {/* RING LAYER — behind the hero; fades out as the grid fades in */}
-              <div
-                className="pointer-events-none absolute inset-0 z-0"
-                style={{ opacity: ringOpacity }}
-              >
+              <div className="pointer-events-none absolute inset-0 z-0" style={{ opacity: ringOpacity }}>
                 {ringChildren}
               </div>
 
               {/* GRID — 5 cols on lg+, with centered placeholders rendered OUTSIDE the memoized tiles */}
               <motion.div className="relative z-0" style={{ opacity: gridOpacity }}>
-                <div
-                  className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-7 pt-14 md:pt-16 pb-10"
-                >
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 lg:gap-7 pt-14 md:pt-16 pb-10">
                   {/* center placeholders */}
-                  <CenterPlaceholderOrHero
-                    showHero={docked}
-                    className="block sm:hidden col-start-1 row-start-2"
-                  />
-                  <CenterPlaceholderOrHero
-                    showHero={docked}
-                    className="hidden sm:block lg:hidden sm:col-start-2 sm:row-start-2"
-                  />
-                  <CenterPlaceholderOrHero
-                    showHero={docked}
-                    className="hidden lg:block lg:col-start-3 lg:row-start-2"
-                  />
+                  <CenterPlaceholderOrHero showHero={docked} className="block sm:hidden col-start-1 row-start-2" />
+                  <CenterPlaceholderOrHero showHero={docked} className="hidden sm:block lg:hidden sm:col-start-2 sm:row-start-2" />
+                  <CenterPlaceholderOrHero showHero={docked} className="hidden lg:block lg:col-start-3 lg:row-start-2" />
 
                   {/* tiles (don’t rebuild at dock) */}
                   {gridTiles}
@@ -210,12 +204,7 @@ export default function PinnedGallery() {
                   <motion.div
                     key="overlay-hero"
                     layoutId="hero-square"
-                    style={{
-                      width: heroW,
-                      height: heroH,
-                      opacity: heroOpacity,
-                      borderRadius: heroRadius as any,
-                    }}
+                    style={heroStyle}
                     className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 overflow-hidden bg-white/5 border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.35)] will-change-transform"
                     transition={{ type: "spring", stiffness: 240, damping: 32 }}
                   >
@@ -223,7 +212,6 @@ export default function PinnedGallery() {
                   </motion.div>
                 )}
               </AnimatePresence>
-
             </LayoutGroup>
           </div>
         </div>
@@ -268,7 +256,7 @@ function AutoPlayVideo({ src }: { src: string }) {
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
-    const tryPlay = () => v.play().catch(() => {});
+    const tryPlay = () => v.play().catch(() => { });
 
     if (v.readyState >= 2) tryPlay();
     const onLoaded = () => tryPlay();
