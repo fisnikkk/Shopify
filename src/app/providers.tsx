@@ -16,7 +16,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     const lenis = new Lenis({
       lerp: 0.08,           // inertia
       smoothWheel: true,
-      smoothTouch: false,
       wheelMultiplier: 1.0,
     });
 
