@@ -76,11 +76,9 @@ export async function POST(req: Request) {
         }
 
         return Response.json({ ok: true, id: data?.id ?? null });
-    } catch (err: any) {
-        console.error("Contact API failed:", err);
-        return Response.json(
-            { ok: false, error: err?.message || "Unexpected server error." },
-            { status: 500 }
-        );
+    } catch (err) {
+        const message = err instanceof Error ? err.message : "Unexpected server error.";
+        console.error("Contact API failed:", message, err);
+        return Response.json({ ok: false, error: message }, { status: 500 });
     }
 }
