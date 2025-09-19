@@ -2,8 +2,16 @@ import HeroIntro from "@/components/HeroIntro";
 import PinnedGallery from "@/components/PinnedGallery";
 import HomeServicesPreview from "@/components/HomeServicesPreview";
 import { Stat, CaseCard } from "@/components/Card";
-import { logos, cases } from "@/lib/data";
+import { logos } from "@/lib/data";
 import Link from "next/link";
+import { caseStudies } from "@/data/work";    
+
+// Allow reading optional fields that aren't on the strict CaseStudy type
+const bulletsFrom = (cs: (typeof caseStudies)[number]) => {
+  const x = cs as Partial<Record<"shipped" | "deliverables" | "highlights", string[]>>;
+  return (x.shipped ?? x.deliverables ?? x.highlights ?? []).slice(0, 3);
+};
+
 
 export default function Page() {
   return (
@@ -47,7 +55,6 @@ export default function Page() {
           </div>
         </section>
 
-        {/* Case studies grid */}
         <section className="py-16">
           <div className="flex items-end justify-between gap-6 flex-wrap mb-8">
             <div>
@@ -58,14 +65,21 @@ export default function Page() {
               Work with me →
             </Link>
           </div>
+
           <div className="grid md:grid-cols-3 gap-6">
-            {cases.map((c) => (
-              <Link key={c.slug} href={`/work/${c.slug}`} className="block">
-                <CaseCard title={c.title} subtitle={c.subtitle} bullets={c.bullets} />
+            {caseStudies.slice(0, 3).map((cs) => (
+              <Link key={cs.slug} href={`/work/${cs.slug}`} className="block">
+                <CaseCard
+                  title={cs.title}
+                  subtitle={cs.subtitle ?? ""}
+                  bullets={bulletsFrom(cs)}
+                />
               </Link>
             ))}
           </div>
         </section>
+
+
 
         {/* CTA */}
         <section className="py-16">

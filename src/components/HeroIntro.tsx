@@ -66,7 +66,7 @@ export default function HeroIntro() {
             <div className="rounded-3xl border border-white/10 bg-white/5 overflow-hidden">
               <div className="relative aspect-[16/10]">
                 <Image
-                  src="/hero-cover.jpg"    // supply a ~1600px-wide asset
+                  src="/hero.jpg"    // supply a ~1600px-wide asset
                   alt=""
                   fill
                   className="object-cover"
